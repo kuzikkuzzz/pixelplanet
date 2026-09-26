@@ -8,7 +8,13 @@ import { REDIS_URL } from '../core/config';
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
-const client = redis.createClient(REDIS_URL, { return_buffers: true });
+
+const isTls = REDIS_URL.startsWith('rediss://');
+
+const client = redis.createClient(REDIS_URL, {
+  return_buffers: true,
+  tls: isTls ? { rejectUnauthorized: false } : undefined,
+});
 
 export const redlock = new Redlock(
   // you should have one redis for each redis node
