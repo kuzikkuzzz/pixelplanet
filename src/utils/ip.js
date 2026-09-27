@@ -4,14 +4,19 @@
  */
 
 import isCloudflareIp from './cloudflareip';
-
 import logger from '../core/logger';
-
 import { USE_XREALIP } from '../core/config';
 
-
 function isTrustedProxy(ip: string): boolean {
-  if (ip === '::ffff:127.0.0.1' || ip === '127.0.0.1' || isCloudflareIp(ip)) {
+  if (
+    !ip ||
+    ip === '::ffff:127.0.0.1' ||
+    ip === '127.0.0.1' ||
+    ip.startsWith('10.') ||
+    ip.startsWith('172.') ||
+    ip.startsWith('192.168.') ||
+    isCloudflareIp(ip)
+  ) {
     return true;
   }
   return false;
@@ -27,37 +32,31 @@ export function getHostFromRequest(req): ?string {
 
 export async function getIPFromRequest(req): ?string {
   const { socket, connection, headers } = req;
+  const conip = connection ? connection.remoteAddress : socket.remoteAddress;
 
-  const conip = (connection ? connection.remoteAddress : socket.remoteAddress);
-
-  if (USE_XREALIP) {
-    const ip = headers['x-real-ip'];
-    return ip || conip;
+  if (USE_XREALIP && headers['x-real-ip']) {
+    return headers['x-real-ip'];
   }
 
-  if (!headers['x-forwarded-for'] || !isTrustedProxy(conip)) {
-    // eslint-disable-next-line max-len
-    logger.warn(`Connection not going through nginx and cloudflare! IP: ${conip}`, headers);
-    return conip;
+  // Cloudflare doğrudan IP kontrolü
+  if (headers['cf-connecting-ip']) {
+    return headers['cf-connecting-ip'];
   }
 
-  const forwardedFor = headers['x-forwarded-for'];
-  const ipList = forwardedFor.split(',').map((str) => str.trim());
-
-  let ip = ipList.pop();
-  while (isTrustedProxy(ip) && ipList.length) {
-    ip = ipList.pop();
+  // Render ve Genel Reverse Proxy (X-Forwarded-For) kontrolü
+  if (headers && headers['x-forwarded-for']) {
+    const forwardedFor = headers['x-forwarded-for'];
+    const ipList = forwardedFor.split(',').map((str) => str.trim());
+    // İstemcinin gerçek IP adresi dizinin ilk elemanıdır
+    return ipList[0] || conip;
   }
 
-  // logger.info('Proxied Connection allowed', ip, forwardedFor);
-  return ip;
+  return conip;
 }
 
 export function getIPv6Subnet(ip: string): string {
-  if (ip.includes(':')) {
-    // eslint-disable-next-line max-len
+  if (ip && ip.includes(':')) {
     const ipv6sub = `${ip.split(':').slice(0, 4).join(':')}:0000:0000:0000:0000`;
-    // logger.warn("IPv6 subnet: ", ipv6sub);
     return ipv6sub;
   }
   return ip;
