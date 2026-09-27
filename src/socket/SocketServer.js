@@ -186,7 +186,7 @@ class SocketServer extends WebSocketEvents {
 
   notifyKickedMember(userId, factionId) {
     this.wss.clients.forEach((ws) => {
-      if (ws.user.regUser.id == userId) {
+      if (ws.user && ws.user.regUser && ws.user.regUser.id == userId) {
         const buffer = KickMember.dehydrate(factionId);
         ws.send(buffer);
       }
@@ -195,7 +195,7 @@ class SocketServer extends WebSocketEvents {
 
   notifyPromotedMember(userId, factionId) {
     this.wss.clients.forEach((ws) => {
-      if (ws.user.regUser.id == userId) {
+      if (ws.user && ws.user.regUser && ws.user.regUser.id == userId) {
         const buffer = PromoteMember.dehydrate(factionId);
         ws.send(buffer);
       }
@@ -204,7 +204,7 @@ class SocketServer extends WebSocketEvents {
 
   notifyDemotedMember(userId, factionId) {
     this.wss.clients.forEach((ws) => {
-      if (ws.user.regUser.id == userId) {
+      if (ws.user && ws.user.regUser && ws.user.regUser.id == userId) {
         const buffer = DemoteMember.dehydrate(factionId);
         ws.send(buffer);
       }
