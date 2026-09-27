@@ -39,6 +39,7 @@ startAllCanvasLoops();
 
 const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', true); // <--- YENİ EKLENEN SATIR (Render Proxy IP düzeltmesi)
 
 // Call Garbage Collector every 30 seconds
 setInterval(forceGC, 15 * 60 * SECOND);
