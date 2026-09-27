@@ -192,20 +192,18 @@ export default function user(
 
     case 'RECIEVE_FACTIONS': {
       const { factions }: { factions: Array } = action;
-      let newFactions = state.factions;
 
-      // Delete non-private factions that weren't returned from the server
-      state.factions.forEach((ef, index) => {
-        if (!factions.find((f) => f.id === ef.id) && !ef.private) {
-          newFactions.splice(index, 1);
-        }
-      });
+      // 1. Dizi kaymalarını ve undefined hatalarını önlemek için güvenli filtreleme
+      let newFactions = state.factions.filter(
+        (ef) => ef && (factions.some((f) => f.id === ef.id) || ef.private)
+      );
 
       factions.forEach((faction) => {
+        if (!faction) return;
         faction.private = false;
-        if (newFactions.findIndex((f) => f.id === faction.id) > -1) {
-          // eslint-disable-next-line max-len
-          newFactions = newFactions.map((fa) => (fa.id === faction.id ? { ...fa, ...faction } : fa));
+        const existingIndex = newFactions.findIndex((f) => f && f.id === faction.id);
+        if (existingIndex > -1) {
+          newFactions[existingIndex] = { ...newFactions[existingIndex], ...faction };
         } else {
           newFactions.push(faction);
         }
@@ -215,10 +213,10 @@ export default function user(
         ...state,
         factions: newFactions
           .slice()
-          .sort((a, b) => a.name.localeCompare(b.name)),
+          .sort((a, b) => (a.name || '').localeCompare(b.name || '')),
       };
     }
-
+      
     case 'LOADING_ICON': {
       const { id } = action;
 
