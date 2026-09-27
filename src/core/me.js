@@ -7,7 +7,6 @@
  */
 import canvases from '../canvases.json';
 
-
 export default async function getMe(user) {
   const userdata = user.getUserData();
   // sanitize data
@@ -28,6 +27,7 @@ export default async function getMe(user) {
   delete userdata.mailVerified;
   delete userdata.mcVerified;
 
+  userdata.admin = user.isAdmin(); // <--- ADMIN ARAÇLARINI AÇAN SATIR
   userdata.canvases = canvases;
 
   return userdata;
