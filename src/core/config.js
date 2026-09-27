@@ -27,6 +27,7 @@ export const USE_PROXYCHECK = parseInt(process.env.USE_PROXYCHECK, 10) || false;
 export const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6380';
 // Database
 export const MYSQL_HOST = process.env.MYSQL_HOST || 'localhost';
+export const MYSQL_PORT = parseInt(process.env.MYSQL_PORT, 10) || 3306;
 export const MYSQL_DATABASE = process.env.MYSQL_DATABASE || 'pixelplanet';
 export const MYSQL_USER = process.env.MYSQL_USER || 'pixelplanet';
 export const MYSQL_PW = process.env.MYSQL_PW || 'password';
@@ -78,7 +79,6 @@ export const auth = {
     clientSecret: process.env.REDDIT_CLIENT_SECRET || 'dummy',
   },
 };
-
 
 export const ads = {
   adsense: {
