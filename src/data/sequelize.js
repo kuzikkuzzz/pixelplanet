@@ -1,13 +1,16 @@
 /**
- *
  * @flow
  */
 
 import Sequelize from 'sequelize';
-
 import logger from '../core/logger';
 import {
-  MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE, MYSQL_USER, MYSQL_PW, LOG_MYSQL,
+  MYSQL_HOST,
+  MYSQL_PORT,
+  MYSQL_DATABASE,
+  MYSQL_USER,
+  MYSQL_PW,
+  LOG_MYSQL,
 } from '../core/config';
 
 const sequelize = new Sequelize(MYSQL_DATABASE, MYSQL_USER, MYSQL_PW, {
@@ -26,7 +29,7 @@ const sequelize = new Sequelize(MYSQL_DATABASE, MYSQL_USER, MYSQL_PW, {
     multipleStatements: true,
     ssl: {
       require: true,
-      rejectUnauthorized: false, // Aiven SSL zorunluluğu için
+      rejectUnauthorized: false,
     },
   },
 });
