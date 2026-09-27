@@ -7,6 +7,7 @@ import type { Action } from '../actions/types';
 export type UserState = {
   name: string,
   id: number,
+  admin: boolean, // <--- 1. BURAYA EKLENDİ (Tip Tanımı)
   center: Cell,
   wait: ?Date,
   coolDown: ?number, // ms
@@ -39,6 +40,7 @@ export type UserState = {
 const initialState: UserState = {
   name: null,
   id: undefined,
+  admin: false, // <--- 2. BURAYA EKLENDİ (Varsayılan Değer)
   center: [0, 0],
   wait: null,
   coolDown: null,
@@ -159,6 +161,7 @@ export default function user(
       const {
         name,
         id,
+        admin, // <--- 3. BURAYA EKLENDİ (API'den gelen admin verisini al)
         mailreg,
         totalPixels,
         dailyTotalPixels,
@@ -171,6 +174,7 @@ export default function user(
         ...state,
         name,
         id,
+        admin, // <--- 3. BURAYA EKLENDİ (Redux state'ine kaydet)
         messages,
         mailreg,
         totalPixels,
@@ -193,7 +197,7 @@ export default function user(
     case 'RECIEVE_FACTIONS': {
       const { factions }: { factions: Array } = action;
 
-      // 1. Dizi kaymalarını ve undefined hatalarını önlemek için güvenli filtreleme
+      // Hem .private çökmesini önleyen hem de güvenli filtreleme
       let newFactions = state.factions.filter(
         (ef) => ef && (factions.some((f) => f.id === ef.id) || ef.private)
       );
@@ -216,7 +220,7 @@ export default function user(
           .sort((a, b) => (a.name || '').localeCompare(b.name || '')),
       };
     }
-      
+
     case 'LOADING_ICON': {
       const { id } = action;
 
@@ -275,9 +279,7 @@ export default function user(
 
       return {
         ...state,
-        // eslint-disable-next-line max-len
         ownFactions: [...state.ownFactions, ownFaction].sort((a, b) => a.name.localeCompare(b.name)),
-        // eslint-disable-next-line max-len
         factions: joinOnId([ownFaction], factions, 'id').sort((a, b) => a.name.localeCompare(b.name)),
       };
     }
@@ -351,10 +353,11 @@ export default function user(
 
     case 'REMOVE_USER_FACTION': {
       const { userId, factionId } = action;
-      const faction = state.factions.find((f) => f.id === factionId);
-      const userIndex = faction.Users.findIndex((u) => u.id === userId);
-
-      faction.Users.splice(userIndex, 1);
+      const faction = state.factions.find((f) => f && f.id === factionId);
+      if (faction && faction.Users) {
+        const userIndex = faction.Users.findIndex((u) => u && u.id === userId);
+        if (userIndex > -1) faction.Users.splice(userIndex, 1);
+      }
 
       return {
         ...state,
@@ -364,10 +367,13 @@ export default function user(
 
     case 'SET_USER_RANK': {
       const { userId, factionId, admin } = action;
-      const faction = state.factions.find((f) => f.id === factionId);
-      const u = faction.Users.find((fu) => fu.id === userId);
-
-      u.UserFactions.admin = admin;
+      const faction = state.factions.find((f) => f && f.id === factionId);
+      if (faction && faction.Users) {
+        const u = faction.Users.find((fu) => fu && fu.id === userId);
+        if (u && u.UserFactions) {
+          u.UserFactions.admin = admin;
+        }
+      }
 
       return {
         ...state,
