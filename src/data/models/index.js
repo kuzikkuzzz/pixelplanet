@@ -1,42 +1,32 @@
 /* @flow */
 
-import sequelize from '../sequelize';
-import User from './User';
-import RegUser from './RegUser';
-import Faction from './Faction';
-import Blacklist from './Blacklist';
-import Whitelist from './Whitelist';
-import FactionPassword from './FactionPassword';
-import UserFactions from './UserFactions';
+import Sequelize from 'sequelize';
+import {
+  MYSQL_HOST,
+  MYSQL_PORT,
+  MYSQL_DATABASE,
+  MYSQL_USER,
+  MYSQL_PW,
+  LOG_MYSQL,
+} from './core/config';
 
-function sync(...args) {
-  return sequelize.sync(...args);
-}
+const sequelize = new Sequelize(MYSQL_DATABASE, MYSQL_USER, MYSQL_PW, {
+  host: MYSQL_HOST,
+  port: MYSQL_PORT,
+  dialect: 'mysql',
+  logging: LOG_MYSQL ? console.log : false,
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false, // Aiven SSL zorunluluğu için
+    },
+  },
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000,
+  },
+});
 
-function associate() {
-  const models = {
-    RegUser,
-    Faction,
-    Blacklist,
-    Whitelist,
-    FactionPassword,
-    UserFactions,
-  };
-
-  Object.keys(models).forEach((modelKey) => {
-    if ('associate' in models[modelKey]) {
-      models[modelKey].associate(models);
-    }
-  });
-}
-
-export default { sync, associate };
-export {
-  RegUser,
-  Faction,
-  Blacklist,
-  Whitelist,
-  User,
-  FactionPassword,
-  UserFactions,
-};
+export default sequelize;
